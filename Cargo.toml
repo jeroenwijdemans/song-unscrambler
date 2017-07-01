@@ -1,0 +1,4 @@
+[package]
+name = "song-unscrambler"
+version = "0.1.0"
+authors = ["jeroenwijdemans@gmail.com"]

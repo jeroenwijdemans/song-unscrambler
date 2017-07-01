@@ -1,0 +1,6 @@
+
+musicdb/
+target/
+.idea/
+*.lock
+*.iml
