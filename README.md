@@ -1,10 +1,12 @@
 
+wip - i use this code to learn rust
+
 # Song Unscrambler
 
 Suppose you take an artist and song combination and scramble the letters. 
-How would you retrieve the artist again without knowing that first step?
+How would you retrieve the artist and song again without knowing that first step?
 
-This application unscrambles that string into the artist.
+This application unscrambles that string into the artist and song.
 
 ## How
 
@@ -17,7 +19,6 @@ the value.
 ## Other implementation
 
 Another implementation would use fuzzy search to find nearest neighbours.
-
 
 
 # Steps
@@ -41,10 +42,13 @@ both steps done in rust
 
 - return song
 
+## start postgres
 
-
+```bash
 docker run -d \
     --name mdb \
     -p 5432:5432 \
     -v ${PWD}/musicdb:/dbimport \
     postgres
+```
+
