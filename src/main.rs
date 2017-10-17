@@ -42,14 +42,14 @@ fn sanitize<'a>(input: &str) -> String {
     return string.to_string()
 }
 
-
 #[cfg(test)]
 mod test {
     use super::*;
 
+
     #[test]
     fn scramble_test() {
-        assert_eq!( sanitize("Hawkwind - Motorhead"), "AADDEHHIKMNOORTWW"  );
+        assert_eq!( sanitize("Hawkwind, Motorhead"), "AADDEHHIKMNOORTWW"  );
     }
 
     #[test]

@@ -27,12 +27,78 @@ both steps done in rust
 
 ## one time
 
+### using just the dataset
+
+
 - download database: https://mirrors.dotsrc.org/MusicBrainz/data/fullexport/20170628-001505/mbdump.tar.bz2
 
-- extract into musicdb ` tar -xvjf mbdump.tar.bz2 -C ${PROJECT}/musicdb`
+- extract into mbdump ` tar -xvjf mbdump.tar.bz2 -C ${PROJECT}/musicdb`
 ( this directory is not in git for (2G) of obvious reasons ... )
 
-- read artist and song and write it into own k,v table
+- download schema into mbdump: https://raw.githubusercontent.com/metabrainz/musicbrainz-server/master/admin/sql/CreateTables.sql
+
+
+- start a postgres: `docker run -ti -v ${PWD}:/datadump postgres:9.5`
+
+- in another shell start a postgres `docker exec -u postgres -ti pg bash`
+
+- add user `createuser musicbrainz_user`
+
+- create db `createdb -U postgres --owner=musicbrainz_user --encoding=UNICODE importtest`
+
+- alter user with superuser rigts (needed to export csv)
+`alter role musicbrainz_user with superuser;`
+
+- create tables and import tables
+(See https://wiki.musicbrainz.org/History:Database_Installation)
+```bash
+psql -U musicbrainz_user importtest
+```
+and import sql: `\i ./CreateTables.sql`
+
+exit: `\q`
+
+import data:
+```bash
+mkdir ../done
+for t in * ; do \
+	echo `date` $t ; echo "\\copy $t from ./$t" | psql -U musicbrainz_user importtest && mv $t ../done/ ; \
+done
+```
+
+- select the data into temp table
+
+```sql
+  SELECT my.* 
+  INTO tmp 
+  FROM (
+    select ac.name as artist, t.name as track 
+    from track t, artist_credit ac 
+    where t.artist_credit = ac.id
+  ) AS my; 
+
+```
+
+- exit '\q'
+
+- export data to csv:
+
+```postgresplsql
+  psql \copy tmp to '/tmp/tracks.csv' csv header
+```
+- login to container as root and move it to the share
+
+`mv /tmp/tracks.csv /datadir/tracks.csv`
+
+### using the server
+
+- start vagrant box 
+- login using vagrant:vagrant, `ssh -p 2222 vagrant@localhost`
+- check if the container runs otherwise start it `docker-compose up /home/vagrant/musicbrainz/musicbrainz-docker`
+- enter the container as pg user `docker exec -u 999 -ti musicbrainzdocker_postgresql_1 bash`
+
+...
+
 
 ## application
 
@@ -52,3 +118,21 @@ docker run -d \
     postgres
 ```
 
+
+docker create --name=musicbrainz \
+-v <path to config >:/config \
+-v <path to data >:/data \
+-e PGID=<gid> -e PUID=<uid> \
+-e BRAINZCODE=<code from musicbrainz> \
+-e TZ=Europe/Amsterdam \
+-e WEBADDRESS=localhost \
+-p 5000:5000 \
+linuxserver/musicbrainz
+
+
+
+docker run -ti \
+    -v ${PWD}/musicdb:/data \
+    -p 5432:5432 \
+    --name musicbrainz_postgres \
+    musicbrainz_postgres 
