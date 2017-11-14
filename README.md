@@ -97,15 +97,6 @@ COPY tmp to '/tmp/tracks.csv' DELIMITER E'\t' QUOTE '"' CSV HEADER;
 
 the resulting file is about 800M 
 
-### using the server
-
-- start vagrant box 
-- login using vagrant:vagrant, `ssh -p 2222 vagrant@localhost`
-- check if the container runs otherwise start it `docker-compose up /home/vagrant/musicbrainz/musicbrainz-docker`
-- enter the container as pg user `docker exec -u 999 -ti musicbrainzdocker_postgresql_1 bash`
-
-...??
-
 ### prepare sqlite database
 
 Here use `createDb.groovy` script to read csv export, create a scrambled text and add it to an sqlite database.
