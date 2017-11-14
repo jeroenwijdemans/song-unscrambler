@@ -4,3 +4,4 @@ target/
 .idea/
 *.lock
 *.iml
+songs.db

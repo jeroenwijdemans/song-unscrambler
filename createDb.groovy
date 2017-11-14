@@ -1,4 +1,6 @@
 /**
+ * timings:
+ *
  * Batch size = 20000
  * Data set = 261_463
  * Total time = 11.33
@@ -20,7 +22,6 @@
 import au.com.bytecode.opencsv.CSVParser
 import au.com.bytecode.opencsv.CSVReader
 import groovy.sql.Sql
-
 import java.text.Normalizer
 import java.util.regex.Pattern
 
@@ -28,10 +29,13 @@ String.metaClass.green = { -> "\033[32;1m" + delegate + "\033[0m" }
 String.metaClass.red = { -> "\033[31;1m" + delegate + "\033[0m" }
 
 start = System.nanoTime()
+
+songsLocation = "./musicdb/tracks.csv"
 batchSize = 20000
+
 printLine "starting application"
 pattern = Pattern.compile("[^\\p{ASCII}]")
-sql = Sql.newInstance("jdbc:sqlite:test.db", "org.sqlite.JDBC")
+sql = Sql.newInstance("jdbc:sqlite:songs.db", "org.sqlite.JDBC")
 
 importSongsIntoSqlDB()
 System.exit(0)
@@ -54,7 +58,11 @@ def importSongsIntoSqlDB() {
 }
 
 def readCsvIntoDb() {
-    CSVReader reader = new CSVReader(new FileReader(new File("songs.txt")),
+    File file = new File(songsLocation)
+    if (!file.exists()) {
+        println "Could not find input file at [${file.getAbsolutePath()}]".red()
+    }
+    CSVReader reader = new CSVReader(new FileReader(file),
             '\t' as char, CSVParser.DEFAULT_ESCAPE_CHARACTER, CSVParser.DEFAULT_QUOTE_CHARACTER, 1)
     counter = 0
     String[] nextLine

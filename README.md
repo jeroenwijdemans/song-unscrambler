@@ -1,5 +1,5 @@
 
-wip - i use this code to learn rust
+wip - i use this code to learn rust and kotlin 
 
 # Song Unscrambler
 
@@ -20,41 +20,47 @@ the value.
 
 Another implementation would use fuzzy search to find nearest neighbours.
 
-
 # Steps
 
-both steps done in rust
+application is in Android Kotlin, the PoC is done in rust
 
-## one time
+## one time setup: creating the dataset
 
-### using just the dataset
+### transform musicdb data to csv
 
+The following steps show how to download the musicdb dataset, open it using docker, transform the data and export it to csv. 
+We then have all artist song combinations.
 
 - download database: https://mirrors.dotsrc.org/MusicBrainz/data/fullexport/20170628-001505/mbdump.tar.bz2
 
-- extract into mbdump ` tar -xvjf mbdump.tar.bz2 -C ${PROJECT}/musicdb`
+- extract into mbdump ` tar -xvjf mbdump.tar.bz2 -C ${PWD}/musicdb/input`
 ( this directory is not in git for (2G) of obvious reasons ... )
 
-- download schema into mbdump: https://raw.githubusercontent.com/metabrainz/musicbrainz-server/master/admin/sql/CreateTables.sql
+- download schema into `mbdump/input`: https://raw.githubusercontent.com/metabrainz/musicbrainz-server/master/admin/sql/CreateTables.sql
 
+- enter the `${PWD}/musicdb` directory
 
-- start a postgres: `docker run -ti -v ${PWD}:/datadump postgres:9.5`
+- start a postgres container: `docker run -ti -u postgres --name pg -v ${PWD}:/datadump postgres:9.5`
 
-- in another shell start a postgres `docker exec -u postgres -ti pg bash`
+- in another shell enter the container as postgres `docker exec -u postgres -ti pg bash`
 
 - add user `createuser musicbrainz_user`
 
 - create db `createdb -U postgres --owner=musicbrainz_user --encoding=UNICODE importtest`
 
+- start psql
+
 - alter user with superuser rigts (needed to export csv)
 `alter role musicbrainz_user with superuser;`
+
+- exit `\q`
 
 - create tables and import tables
 (See https://wiki.musicbrainz.org/History:Database_Installation)
 ```bash
 psql -U musicbrainz_user importtest
 ```
-and import sql: `\i ./CreateTables.sql`
+and import sql: `\i /datadump/CreateTables.sql`
 
 exit: `\q`
 
@@ -64,6 +70,10 @@ mkdir ../done
 for t in * ; do \
 	echo `date` $t ; echo "\\copy $t from ./$t" | psql -U musicbrainz_user importtest && mv $t ../done/ ; \
 done
+```
+- enter psql again
+```bash
+psql -U musicbrainz_user importtest
 ```
 
 - select the data into temp table
@@ -76,19 +86,16 @@ done
     from track t, artist_credit ac 
     where t.artist_credit = ac.id
   ) AS my; 
-
 ```
-
-- exit '\q'
-
 - export data to csv:
-
 ```postgresplsql
-  psql \copy tmp to '/tmp/tracks.csv' csv header
+COPY tmp to '/tmp/tracks.csv' DELIMITER E'\t' QUOTE '"' CSV HEADER;
 ```
-- login to container as root and move it to the share
+- login to container as root and move it to the share so its available on the host system
 
-`mv /tmp/tracks.csv /datadir/tracks.csv`
+`mv /tmp/tracks.csv /datadir/`
+
+the resulting file is about 800M 
 
 ### using the server
 
@@ -97,12 +104,23 @@ done
 - check if the container runs otherwise start it `docker-compose up /home/vagrant/musicbrainz/musicbrainz-docker`
 - enter the container as pg user `docker exec -u 999 -ti musicbrainzdocker_postgresql_1 bash`
 
-...
+...??
+
+### prepare sqlite database
+
+Here use `createDb.groovy` script to read csv export, create a scrambled text and add it to an sqlite database.
+    
+To run this with test data:
+    
+```bash
+head -1000 ${PWD}/musicdb/tracks.csv > tracks.csv
+groovy ./createDb.groovy 
+```
 
 
 ## application
 
-- sanitize scrambled word 
+- sanitize scrambled word.
 
 - find sanitized word in table
 
