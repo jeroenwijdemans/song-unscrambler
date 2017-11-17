@@ -1,0 +1,17 @@
+{
+  "requests": [
+    {
+      "image": {
+        "source": {
+          "imageUri": "https://storage.googleapis.com/song-unscrambler.appspot.com/test/DSC_1421.JPG"
+        }
+      },
+      "features": [
+        {
+          "type": "TEXT_DETECTION",
+          "maxResults": 2
+        }
+      ]
+    }
+  ]
+}
