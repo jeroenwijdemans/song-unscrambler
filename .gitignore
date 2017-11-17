@@ -4,4 +4,6 @@ target/
 .idea/
 *.lock
 *.iml
-songs.db
+*.iws
+*.ipr
+*.db
